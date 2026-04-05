@@ -1,0 +1,489 @@
+{
+  "name": "Clinic appointments",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1168,
+        336
+      ],
+      "id": "7a76efce-5732-44b1-a04e-813752c1931f",
+      "name": "Telegram Trigger",
+      "webhookId": "d4185fdf-5f09-4171-a3b9-fd5a89d82c41",
+      "credentials": {
+        "telegramApi": {
+          "id": "fYh2k6eEaamoQBXX",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "45241d82-aef4-4a0c-858f-667e0c2140d2",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -960,
+        336
+      ],
+      "id": "81eef1c9-9dde-4d32-9499-5bc4c2ec7356",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "به کلینیک دندان رضایی خوش آمدید!\n\nلطفا ابتدا اسم تان را بنویسید، سپس مشکل و روز و تاریخ مورد نظر برای مراجعه تان به کلینیک را در یک پیام بنویسید.\nبه‌طور مثال:\n مجتبی رضایی\nپوش کردن دندان\nروز سه شنبه تاریخ 15 حمل",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -752,
+        240
+      ],
+      "id": "30bf3c1e-7c24-44c7-b6a2-9fde9f181e3d",
+      "name": "Send a text message",
+      "webhookId": "850d047c-3ccd-4916-94c4-5b39d1538280",
+      "credentials": {
+        "telegramApi": {
+          "id": "fYh2k6eEaamoQBXX",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User message:\n{{ $json[\"message\"][\"text\"] }}\n\nTelegram user id:\n{{ $json[\"message\"][\"from\"][\"id\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI scheduling assistant for a dental clinic.\n\nYou MUST use the structured output tool to return the final answer.\n\n-----------------------------------\n\nINPUT FORMAT:\n\nUser sends 3 lines:\n\nLine 1: Full Name\nLine 2: Problem\nLine 3: Time preference + Gregorian date\n\nYou also receive:\n- Telegram user id\n\n-----------------------------------\n\nTOOLS USAGE RULES:\n\n1. You MUST use the tool \"think\" before any action\n2. You MUST use Google Calendar tool to check availability\n3. You MUST use the structured output tool to return final result\n\nDo NOT return raw JSON manually.\n\n-----------------------------------\n\nTASKS:\n\n1. Extract:\n- full_name\n- problem\n- original_date_text\n- telegram_user_id\n\n2. Detect time preference:\n- \"قبل از ظهر\" → morning\n- \"بعد از ظهر\" → afternoon\n\n3. Extract Gregorian date:\n- Convert to YYYY-MM-DD\n- If year missing → use current year\n- Ignore weekday text\n\nMonth mapping:\nJanuary/جنوری=01\nFebruary/فبروری=02\nMarch/مارچ=03\nApril/اپریل=04\nMay/می=05\nJune/جون=06\nJuly/جولای=07\nAugust/اگست=08\nSeptember/سپتامبر=09\nOctober/اکتوبر=10\nNovember/نوامبر=11\nDecember/دسامبر=12\n\n-----------------------------------\n\nBUSINESS RULE:\n\n- Clinic is CLOSED on Friday\n- If Friday:\n  → available = false\n  → DO NOT call Google Calendar\n\n-----------------------------------\n\nTIME RULES:\n\nMorning:\n08:00 → 11:30\n\nAfternoon:\n14:00 → 17:30\n\nInterval: 30 minutes\n\n-----------------------------------\n\nSCHEDULING LOGIC:\n\n1. If NOT Friday:\n   - Call Google Calendar tool\n   - Get events for that date\n   - Find earliest free slot in selected period\n\n2. If slot found:\n   → available = true\n\n3. If no slot:\n   → available = false\n\n-----------------------------------\n\nSUMMARY RULE:\n\nIf available:\n\"نوبت شما برای {problem} در تاریخ {date} ساعت {time} ثبت شد\"\n\nIf not available:\n\"متأسفانه در این بازه زمانی نوبت خالی موجود نیست\"\n\n-----------------------------------\nYou are an AI scheduling assistant for a dental clinic.\n\nYou MUST use the structured output tool to return the final answer.\n\n-----------------------------------\n\nINPUT FORMAT:\n\nUser sends 3 lines:\n\nLine 1: Full Name\nLine 2: Problem\nLine 3: Time preference + Gregorian date\n\nYou also receive:\n- Telegram user id\n\n-----------------------------------\n\nTOOLS USAGE RULES:\n\n1. You MUST use the \"think\" tool before any action\n2. You MUST use Google Calendar tool to check availability\n3. You MUST use the structured output tool to return final result\n\nDo NOT return raw JSON manually.\n\n-----------------------------------\n\nTASKS:\n\n1. Extract:\n- full_name\n- problem\n- original_date_text\n- telegram_user_id\n\n2. Detect time preference:\n- \"قبل از ظهر\" → morning\n- \"بعد از ظهر\" → afternoon\n\n3. Extract Gregorian date:\n- Convert to YYYY-MM-DD\n- If year missing → use current year\n- Ignore weekday text\n\nMonth mapping:\nJanuary/جنوری=01\nFebruary/فبروری=02\nMarch/مارچ=03\nApril/اپریل=04\nMay/می=05\nJune/جون=06\nJuly/جولای=07\nAugust/اگست=08\nSeptember/سپتامبر=09\nOctober/اکتوبر=10\nNovember/نوامبر=11\nDecember/دسامبر=12\n\n-----------------------------------\n\nBUSINESS RULE:\n\n- Clinic is CLOSED on Friday\n- If Friday:\n  → available = false\n  → DO NOT call Google Calendar\n\n-----------------------------------\n\nTIME RULES:\n\nMorning:\n08:00 → 11:30\n\nAfternoon:\n14:00 → 17:30\n\nInterval: 30 minutes\n\n-----------------------------------\n\nSCHEDULING LOGIC:\n\n1. If NOT Friday:\n   - Call Google Calendar tool\n   - Get events for that date\n   - Find earliest free slot in selected period\n\n2. If slot found:\n   → available = true\n\n3. If no slot:\n   → available = false\n\n-----------------------------------\n\nTIME CALCULATION (IMPORTANT):\n\n- Each appointment duration is 30 minutes\n- end_time = appointment_time + 30 minutes\n- end_datetime = gregorian_date + end_time\n\n-----------------------------------\n\nSUMMARY & MESSAGE RULES:\n\n1. summary:\n- Format:\n  full_name + \"_\" + problem\n- Example:\n  \"مجتبی رضایی_پوش کردن دندان\"\n\n2. message (for user):\n\nIf available:\n\"نوبت شما برای {problem} در تاریخ {gregorian_date} ساعت {appointment_time} ثبت شد\"\n\nIf NOT available:\n\"متأسفانه در این بازه زمانی نوبت خالی موجود نیست\"\n\n-----------------------------------\n\nFINAL STEP (CRITICAL):\n\nYou MUST call the structured output tool with ALL fields:\n\n- full_name\n- problem\n- original_date_text\n- gregorian_date\n- time_preference\n- appointment_time (or null)\n- end_time (or null)\n- final_datetime (or null)\n- end_datetime (or null)\n- available\n- telegram_user_id\n- summary\n- message\n\nDo NOT output anything outside the tool.\n\nDO NOT FORGET TO USE THINK TOOL"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -736,
+        432
+      ],
+      "id": "60e4572f-eb2b-48fc-a7cc-3f6201d59973",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        640
+      ],
+      "id": "7c9b5456-7763-461f-9476-2423ef3ed30c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "fHgnZyjGAjzV7VIV",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "=Use this tool to think step-by-step before taking any action.\n\n-----------------------------------\n\n1. Parse input:\n- Line 1 → full_name\n- Line 2 → problem\n- Line 3 → time preference + date\n- Extract telegram_user_id if provided\n\n-----------------------------------\n\n2. Detect time preference:\n- \"قبل از ظهر\" → morning\n- \"بعد از ظهر\" → afternoon\n\n-----------------------------------\n\n3. Extract date:\n- Identify day and month (Gregorian)\n- Convert to YYYY-MM-DD\n- Assume current year if missing\n- Ignore weekday text (but still detect it if present)\n\n-----------------------------------\n\n4. Check weekday constraint:\n- Determine the weekday of the selected date\n- If the day is Friday:\n  → Clinic is CLOSED\n  → Do NOT check calendar\n  → Set available = false\n  → Stop further scheduling\n\n-----------------------------------\n\n5. Generate time slots:\n\nMorning:\n08:00 → 11:30 (30 min steps)\n\nAfternoon:\n14:00 → 17:30 (30 min steps)\n\n-----------------------------------\n\n6. Availability check (only if NOT Friday):\n\n- Use Google Calendar tool to get events\n- Extract occupied times\n- Compare with allowed slots\n\n-----------------------------------\n\n7. Slot selection:\n\n- Choose earliest available slot in requested period\n\nIF no slot found:\n→ available = false\n\nIF slot found:\n→ available = true\n\n-----------------------------------\n\n8. Final validation:\n\n- Time must be inside allowed range\n- No overlap with existing events\n- Do not change date\n- Do not change time period\n\n-----------------------------------\n\n9. Output preparation:\n\nPrepare final structured JSON with:\n- full_name\n- problem\n- original_date_text\n- gregorian_date\n- time_preference\n- appointment_time\n- final_datetime\n- available\n- telegram_user_id\n\n-----------------------------------\n\nIMPORTANT:\n\n- Think step-by-step BEFORE calling tools\n- If Friday → stop early\n- Minimize unnecessary tool calls\n- Do NOT output anything from this tool"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        640
+      ],
+      "id": "c61d9dbf-e47e-44ba-9a08-929c86c7ab48",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "1397966e43fd03fa1d342836d9158e45ef1af7ae61104f259145be80639dee9a@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Rezaie Clinic"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        -688,
+        672
+      ],
+      "id": "e53d63a8-b890-4a2d-b8be-637dcafe7d8f",
+      "name": "Get availability in a calendar in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Ct34FJkApSCNcTw2",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.available }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    },
+                    "id": "1f01f141-5094-4941-abd0-3dcd678d8da5"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f0203a54-427d-4261-af9f-a3a4010648f7",
+                    "leftValue": "={{ $json.output.available }}",
+                    "rightValue": false,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -384,
+        432
+      ],
+      "id": "70962036-89a3-477a-ae35-a1bb5955e443",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"full_name\": \"مجتبی رضایی\",\n  \"problem\": \"پوش کردن دندان\",\n  \"original_date_text\": \"بعد از ظهر روز پنج شنبه تاریخ 2 اپریل\",\n  \"gregorian_date\": \"2026-04-02\",\n  \"time_preference\": \"afternoon\",\n  \"appointment_time\": \"14:00\",\n  \"end_time\": \"14:30\",\n  \"final_datetime\": \"2026-04-02T14:00:00\",\n  \"end_datetime\": \"2026-04-02T14:30:00\",\n  \"available\": true,\n  \"telegram_user_id\": \"982126770\",\n  \"summary\": \"مجتبی رضایی_پوش کردن دندان\",\n  \"message\": \"نوبت شما برای پوش کردن دندان در تاریخ 2026-04-02 ساعت 14:00 ثبت شد\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        640
+      ],
+      "id": "86aff54c-8509-4ce4-abdf-771f7d95f9e5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "1397966e43fd03fa1d342836d9158e45ef1af7ae61104f259145be80639dee9a@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Rezaie Clinic"
+        },
+        "start": "={{ $json.output.final_datetime }}",
+        "end": "={{ $json.output.end_datetime }}",
+        "additionalFields": {
+          "description": "={{ $json.output.summary }}",
+          "summary": "={{ $json.output.summary }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        416
+      ],
+      "id": "f6aaa321-b0bd-444f-871b-b1408f49aa90",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Ct34FJkApSCNcTw2",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Vyb-1pg9M0DGZz45sX9gRyRXPatALFmzZ_yuvKB1msM",
+          "mode": "list",
+          "cachedResultName": "clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vyb-1pg9M0DGZz45sX9gRyRXPatALFmzZ_yuvKB1msM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Vyb-1pg9M0DGZz45sX9gRyRXPatALFmzZ_yuvKB1msM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Switch').item.json.output.full_name }}",
+            "User ID": "={{ $('Switch').item.json.output.telegram_user_id }}",
+            "Problem": "={{ $('Switch').item.json.output.problem }}",
+            "Time": "={{ $('Switch').item.json.output.appointment_time }}",
+            "Date": "={{ $('Switch').item.json.output.gregorian_date }}"
+          },
+          "matchingColumns": [
+            "User ID"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Problem",
+              "displayName": "Problem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User ID",
+              "displayName": "User ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        80,
+        416
+      ],
+      "id": "59edf37a-07e5-48c5-895f-857325b116e5",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "unHYeFvrcD4Ixu9F",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get availability in a calendar in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "40a6b7de-4868-4ddc-ab6d-e9bf1bf58b7a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcdb15ef08ea53913b97983d05b8999b3799e508761b41e5475154b7f7280645"
+  },
+  "id": "THFn6yDLjej4Z3zi",
+  "tags": []
+}
